@@ -25,8 +25,7 @@ class BlockchainServer(blockchain_pb2_grpc.BlockChainServicer):
         self.mydb = myClient["BlockchainDB"]
         self.col = None
 
-        # the longest blockchain in the network
-        # self.highestBlockIndex = 1
+        self.map = []
 
     def initTxList(self, request, context):
         self.localTxList = []
@@ -34,40 +33,6 @@ class BlockchainServer(blockchain_pb2_grpc.BlockChainServicer):
         self.localTxList.append(coinbaseTx)
         response = blockchain_pb2.InitTxListResponse(message="Tx list init")
         return response
-
-    # Receive miner's transaction and expected hash. And return the result or the address of the new block to the miner.
-    # def addNewBlock(self, request, context):
-    #     current_blockIndex = len(self.blockchain.blocks)
-    #     previousBlockHash = self.blockchain.blocks[current_blockIndex - 1].hash
-    #     nonce = request.nonce
-    #     # print("local TX:", self.localTxList)
-    #     hash_code, block = addNewBlock(self.blockchain.blocks, self.localTxList, current_blockIndex, previousBlockHash,
-    #                                    nonce, self.publicKey)
-    #
-    #     if block:
-    #         # mydict = {"_id": block.index, "block info": block}
-    #         # x = self.col.insert_one(mydict)
-    #
-    #         self.blockchain.blocks.append(block)
-    #         saveBlocktoDB(self.col, block)
-    #         print(f"Block {block.index} saved in to storage!")
-    #         # time.sleep(5)
-    #
-    #         print("Blockchain updated: ")
-    #         for i in range(len(self.blockchain.blocks)):
-    #             print("block " + str(i) + ":")
-    #             print('block hash = ' + self.blockchain.blocks[i].hash)
-    #             # print('block transaction = ' + self.blockchain.blocks[i].Transaction)
-    #         print()
-    #
-    #         pb2_block = blockchain_pb2.Block(index=block.index, hash=block.hash, prevBlockHash=block.prevBlockHash,
-    #                                          rootHash=block.rootHash, nonce=block.nonce,
-    #                                          timestamp=block.timestamp,
-    #                                          transactionList=txList2msg(block.transactionList))
-    #
-    #         return blockchain_pb2.AddBlockResponse(hash=hash_code, newBlock=pb2_block)
-    #     else:
-    #         return blockchain_pb2.AddBlockResponse(hash=hash_code, newBlock=None)
 
     def receiveBlock(self, request, context):
         print(request.message)
@@ -80,7 +45,7 @@ class BlockchainServer(blockchain_pb2_grpc.BlockChainServicer):
         # block = NewBlock(request.newBlock.transaction, request.newBlock.prevBlockHash)
         if isValidBlock(self.blockchain.blocks, block) or len(self.blockchain.blocks) == 1:
             print("Valid block")
-            print("valid block's tx list", block.transactionList)
+            # print("valid block's tx list", block.transactionList)
             self.blockchain.blocks.append(block)
             saveBlocktoDB(self.col, block)
 
@@ -92,7 +57,6 @@ class BlockchainServer(blockchain_pb2_grpc.BlockChainServicer):
             print()
 
             response = blockchain_pb2.ReceiveBlockResponse(message="OK")
-            blockchain_pb2.AddBlockResponse(hash="Restart")
 
         else:
             response = blockchain_pb2.ReceiveBlockResponse(message="Invalid Block!!!")
@@ -137,7 +101,6 @@ class BlockchainServer(blockchain_pb2_grpc.BlockChainServicer):
             for i in range(len(self.blockchain.blocks)):
                 print("block " + str(i) + ":")
                 print('block hash = ' + self.blockchain.blocks[i].hash)
-                # print('block transaction = ' + self.blockchain.blocks[i].Transaction)
             print()
 
             pb2_block = blockchain_pb2.Block(index=block.index, hash=block.hash, prevBlockHash=block.prevBlockHash,
@@ -149,11 +112,44 @@ class BlockchainServer(blockchain_pb2_grpc.BlockChainServicer):
             hash = hashlib.sha256((addr).encode("utf-8")).hexdigest()
             hash_result = hashlib.sha256(hash.encode("utf-8")).hexdigest()
 
-
             response = blockchain_pb2.receiveMessageResponse(message=hash_result, newBlock=pb2_block)
             return response
 
-            # initialize server state
+        if req.startswith("Update map"):
+            pKey = req.split(":")[-1]
+            target = int(req.split(":")[-2])
+            self.map[int(target)] = pKey
+            print("Update map:", self.map)
+            response = blockchain_pb2.receiveMessageResponse(message="ok")
+            return response
+
+        if req.startswith("Refresh map"):
+            self.map = updateMap(self.map, 10)
+            response = blockchain_pb2.receiveMessageResponse(map=self.map)
+            return response
+
+        if req.startswith("New map"):
+            newMap = request.map
+            self.map = newMap
+            print("New map:", self.map)
+            response = blockchain_pb2.receiveMessageResponse(message="ok")
+            return response
+
+        if req.startswith("Guess"):
+            guess = int(req.split(":")[-1])
+            if self.map[guess] == "1":
+                addr = self.publicKey.to_pem().decode()
+                hash = hashlib.sha256((addr).encode("utf-8")).hexdigest()
+                hash_result = hashlib.sha256(hash.encode("utf-8")).hexdigest()
+                self.map[guess] = hash_result
+                print("Update map:", self.map)
+
+                result = "True"
+            else:
+                result = "False"
+            print("guess result:", result)
+            response = blockchain_pb2.receiveMessageResponse(message=result)
+            return response
 
     # check channel aliveness
     def getState(self, request, context):
@@ -167,11 +163,12 @@ class BlockchainServer(blockchain_pb2_grpc.BlockChainServicer):
                 self.publicKey_list.append(loadKey(i))
             col_name = f'miner{self.clientIndex}'
             self.col = self.mydb[col_name]
-            # safe genesis block
-            # try:
-            #     saveBlocktoDB(self.col, self.blockchain.blocks[0])
-            # except:
-            #     print("Genesis block already in DB")
+
+            # initiate map
+            length = 100
+            self.map = ["1", "1", "1", "1", "1"]
+            for i in range(length - 5):
+                self.map.append("0")
 
         message = f'Miner {self.clientIndex} alive!'
         response = blockchain_pb2.getStateResponse(message=message)
@@ -196,31 +193,6 @@ class BlockchainServer(blockchain_pb2_grpc.BlockChainServicer):
 
         return blockchain_pb2.QueryDBResponse(message='Blockchain reading complete!')
 
-    def addNewtransaction(self, request, context):
-        if isValidTx(request.addnew, genUTXOs(self.blockchain.blocks)) != False:
-            self.localTxList.append(request.addnew)
-            return blockchain_pb2.addNewResponse(addresult='add NewTransaction success!')
-        else:
-            return blockchain_pb2.addNewResponse(addresult='Not valid transaction!')
-    # Receive the miner's query request and return the complete blockchain (list format)
-    # def QueryBlockchain(self, request, context):
-    #     response = blockchain_pb2.QueryBlockchainResponse()
-    #     # Question: What does this for loop statement do? How is his data structure transformed?
-    #     for block in self.blockchain.blocks:
-    #         pb2_block = blockchain_pb2.Block(transaction=block.Transaction, hash=block.Hash,
-    #                                          prevBlockHash=block.PrevBlockHash)
-    #         response.blocks.append(pb2_block)
-    #     return response
-
-    # For step 3
-    # def QueryBlock(self, request, context):
-    #     response = blockchain_pb2.QueryBlockResponse()
-    #
-    #     block = self.blockchain.blocks[-1]
-    #     response = blockchain_pb2.Block(transaction=block.Transaction, hash=block.Hash,
-    #                                     preBlockHash=block.PrevBlockHash)
-    #     return response
-
 
 # server setting
 def serve(port):
@@ -230,35 +202,6 @@ def serve(port):
     server.start()
     print("blockchain-demo started, listening on " + port)
     server.wait_for_termination()
-
-
-def saveBlocktoDB(mycol, block):
-    b_dict = block2Dict(block)
-    mydict = {"_id": block.index, "block info": b_dict}
-
-    x = mycol.insert_one(mydict)
-
-
-def getBlockchainFromDB(mycol, blockchain):
-    # db_blockchain = []
-    for x in mycol.find():
-        db_block = dict2Block(x['block info'])
-        # db_blockchain.append(db_block)
-        blockchain.append(db_block)
-
-    # return db_blockchain
-
-
-def getBlockFromDB(mycol, blockIndex):
-    myquery = {"_id": blockIndex}
-
-    mydoc = mycol.find(myquery)
-    block = None
-
-    for x in mydoc:
-        block = dict2Block(x['block info'])
-
-    return block
 
 
 def txList2msg(tx_list):
@@ -288,38 +231,6 @@ def txList2msg(tx_list):
     return msgTxList
 
 
-def msg2txList(msgtxList):
-    txList = []
-
-    for msgtx in msgtxList:
-        txInList = []
-        txOutList = []
-
-        for msgTxIn in msgtx.TxInList:
-            txIn = TxIn(msgTxIn.TxOutId, msgTxIn.TxOutIndex, msgTxIn.signature)
-            txInList.append(txIn)
-
-        for msgTxOut in msgtx.TxOutList:
-            addr = VerifyingKey.from_pem(msgTxOut.address.encode())
-            # print('msg2Txout', msgTxOut.address)
-            txOut = TxOut(addr, msgTxOut.amount)
-            txOutList.append(txOut)
-
-        tx = Transaction(txInList, txOutList)
-        print("old", tx.TxId)
-        tx.setTxID(msgtx.TxId)
-        print("new set tx id", tx.TxId)
-        # print()
-        txList.append(tx)
-        # if tx.TxId == msgtx.TxId:
-        #     txList.append(tx)
-        #     continue
-        # else:
-        #     print("Transaction error")
-
-    return txList
-
-
 def UTXOs2msg(UTXOs):
     msgkey_list = []
     msgOwner_list = []
@@ -327,10 +238,6 @@ def UTXOs2msg(UTXOs):
     for k, v in UTXOs.items():
         msgkey_list.append(k)
 
-        # addr = str(v.address.to_pem())
-
-        # msgAmount = blockchain_pb2.TxOut(amount=)
-        # print("v.amount",v.amount)
         msgAmount_list.append(v.amount)
 
         if not isinstance(v.address, str):
@@ -347,124 +254,28 @@ def UTXOs2msg(UTXOs):
     return msgUTXOs
 
 
-def block2Dict(block):
-    b_dict = {}
-    b_dict['index'] = block.index
-    b_dict['hash'] = block.hash
-    b_dict['prevBlockHash'] = block.prevBlockHash
-    b_dict['rootHash'] = block.rootHash
-    b_dict['nonce'] = block.nonce
-    b_dict['timestamp'] = block.timestamp
+def updateMap(map, numOfTarget):
+    # delete previous block
+    for i in range(5, 100):
+        if map[i] == '1':
+            map[i] = '0'
+    import random
 
-    txList2dict = []
-    for tx in block.transactionList:
-        txList2dict.append(tx2dict(tx))
+    # generate target list and update map
+    targetIndexList = []
 
-    b_dict['transactionList'] = txList2dict
+    for i in range(numOfTarget):
+        idx = random.randint(0, 99)
+        # check whether the position has been mined
+        while map[idx] != '0':
+            idx = random.randint(0, 99)
+        targetIndexList.append(idx)
 
-    return b_dict
+    for target in targetIndexList:
+        map[target] = '1'
 
-
-def tx2dict(tx):
-    tx_dict = {}
-    tx_dict['TxId'] = tx.TxId
-    txIn_list = []
-    txOut_list = []
-    for txIn in tx.TxInList:
-        txIn_list.append(txIn2Dict(txIn))
-
-    for txOut in tx.TxOutList:
-        txOut_list.append(txOut2Dict(txOut))
-
-    tx_dict['TxInList'] = txIn_list
-    tx_dict['TxOutList'] = txOut_list
-
-    return tx_dict
-
-
-def txIn2Dict(txIn):
-    txIn_dict = {'TxOutId': txIn.TxOutId, 'TxOutIndex': txIn.TxOutIndex, 'signature': txIn.signature}
-    return txIn_dict
-
-
-def txOut2Dict(txOut):
-    if not isinstance(txOut.address, str):
-        addr = txOut.address.to_pem().decode()
-        # print("Before save txOut",txOut)
-        # print("Before save txOut address",txOut.address)
-        # print()
-    else:
-        addr = txOut.address
-    txOut_dict = {'address': addr, 'amount': txOut.amount}
-    return txOut_dict
-
-
-def dict2Block(b_dict):
-    index = b_dict['index']
-    hash = b_dict['hash']
-    prevBlockHash = b_dict['prevBlockHash']
-    rootHash = b_dict['rootHash']
-    nonce = b_dict['nonce']
-    timestamp = b_dict['timestamp']
-
-    block = Block(index, hash, prevBlockHash, rootHash, nonce, timestamp)
-    txList = []
-    for tx_dict in b_dict['transactionList']:
-        txList.append(dict2Tx(tx_dict))
-
-    block.setTransactions(txList)
-
-    return block
-
-
-def dict2Tx(tx_dict):
-    TxId = tx_dict['TxId']
-    TxInList = tx_dict['TxInList']
-    TxOutList = tx_dict['TxOutList']
-
-    tx = Transaction(dict2TxIn(TxInList), dict2TxOut(TxOutList))
-    tx.setTxID(TxId)
-
-    # print("new txid", tx.TxId)
-    # print("old txid", TxId)
-    # print(tx.TxInList)
-    # print(tx.TxOutList[0].address)
-    # print(tx.TxOutList[0])
-    return tx
-    # if tx.TxId == TxId:
-    #     return tx
-    # else:
-    #     print("Invalid transaction")
-
-
-def dict2TxIn(txInList_dict):
-    TxInList = []
-
-    for txIn in txInList_dict:
-        TxOutId = txIn['TxOutId']
-        TxOutIndex = txIn['TxOutIndex']
-        signature = txIn['signature']
-
-        newtxIn = TxIn(TxOutId, TxOutIndex, signature)
-        TxInList.append(newtxIn)
-    return TxInList
-
-
-def dict2TxOut(txOutList_dict):
-    TxOutList = []
-
-    for txOut in txOutList_dict:
-        address = str(txOut['address'])
-        # print("new addr",type(address))
-        # print(address.encode())
-        vk = VerifyingKey.from_pem(address.encode())
-        # print("addr", vk)
-
-        amount = txOut['amount']
-
-        newtxOut = TxOut(vk, amount)
-        TxOutList.append(newtxOut)
-    return TxOutList
+    print("New Map:", map)
+    return map
 
 
 # run the server

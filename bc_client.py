@@ -1,16 +1,10 @@
 from __future__ import print_function
 
 import logging
-import random
-import time
 import grpc
 
 import grpc_utils.blockchain_pb2 as blockchain_pb2
 import grpc_utils.blockchain_pb2_grpc as blockchain_pb2_grpc
-import ECDSA
-
-
-# The client initialization
 
 
 class bc_Miner:
@@ -52,6 +46,8 @@ class bc_Miner:
 
         self.localport = self.port_list[self.miner_index]
 
+        initTX = stub.initTxList(blockchain_pb2.InitTxListRequest(message="init transaction"))
+
         # self.mining()
 
     def QueryDB(self):
@@ -84,6 +80,17 @@ class bc_Miner:
                 print("broadcastMsg err", e)
         return response_list
 
+    def checkResult(self, guess):
+        msg = f"Guess:{guess}"
+
+        local_channel = grpc.insecure_channel('localhost:' + self.localport)
+        response = self.sendMessage(local_channel, msg)
+
+        if response.message == "True":
+            return self.mineABlock(guess)
+        else:
+            return f"Failed to find a block at position[{guess}]..."
+
     def mineABlock(self, target):
         # check whether it is synchronized
         while 1:
@@ -96,22 +103,50 @@ class bc_Miner:
             # query next block
 
         # generate new block
-        pkey, blockHash = self.genNewBlock(target)
+        blockHash = self.genNewBlock(target)
 
-        return pkey, blockHash
+        return blockHash
 
     def genNewBlock(self, target):
         local_channel = grpc.insecure_channel('localhost:' + self.localport)
         stub = blockchain_pb2_grpc.BlockChainStub(local_channel)
+
+        # generate a block
         response = self.sendMessage(local_channel, f'Gen Block:{target}')
         minerKey = response.message
         print("Add the block successfully.")
+
+        # initiate coinbase transaction
         initTX = stub.initTxList(blockchain_pb2.InitTxListRequest(message="init transaction"))
         print(initTX.message)
+
+        # broadcast the new block
         self.broadcastBlock(response.newBlock)
         blockHash = response.newBlock.hash
 
-        return minerKey, blockHash
+        # update the map
+        msg = f"Update map:{target}:{minerKey}"
+        response_list = self.broadcastMsg(msg)
+        return blockHash
+
+    def refreshMap(self):
+        # get local map
+        msg = f"Refresh map"
+        local_channel = grpc.insecure_channel('localhost:' + self.localport)
+        response = self.sendMessage(local_channel, msg)
+        self.broadcastMap(response.map)
+
+    def broadcastMap(self, map):
+        channel_list = self.getAliveChannel(self.port_list)
+
+        for c in channel_list:
+            try:
+                stub = blockchain_pb2_grpc.BlockChainStub(c)
+                tran_msg = f"New map"
+                response = stub.receiveMessage(blockchain_pb2.receiveMessageRequest(message=tran_msg, map=map))
+
+            except Exception as e:
+                print("broadcastMap err: ", e)
 
     def isMining(self):
         # check whether the mining should start mining
@@ -178,22 +213,6 @@ class bc_Miner:
         stub = blockchain_pb2_grpc.BlockChainStub(local_channel)
         response = stub.getUTXOs(blockchain_pb2.getUTXOsRequest(message="get UTXOs"))
         return response
-
-    def broadcastNewTransaction(transaction):
-        channel = grpc.insecure_channel('localhost:50052')
-        localchannel = grpc.insecure_channel('localhost:50051')
-        localstub = blockchain_pb2_grpc.BlockChainStub(localchannel)
-
-        channel_list = [channel]
-        successadd = 0
-
-        for c in channel_list:
-            stub = blockchain_pb2_grpc.BlockChainStub(c)
-            if stub.addNewtransaction(
-                    blockchain_pb2.addNewRequest(addnew=transaction)) == 'add NewTransaction success!':
-                successadd += 1
-        if successadd > 0:
-            localstub.addNewtransaction(blockchain_pb2.addNewRequest(addnew=transaction))
 
     def getBlock(self, block_index):
         # get block message from other miner

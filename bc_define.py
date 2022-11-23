@@ -1,8 +1,7 @@
 import hashlib
-import random
-
-import hashlib
 from datetime import datetime
+
+from ecdsa import VerifyingKey
 
 from TxOut import TxOut
 from Transaction import Transaction
@@ -11,10 +10,6 @@ from TxIn import TxIn
 from UTXOs import UTXOs
 
 import MerkleTree
-import ECDSA
-
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import ec
 
 # blockchain pre define info
 diffInterval = 2
@@ -26,19 +21,9 @@ class Blockchain:
         self.blocks = []
         self.target_hash = 0
 
-        # when a new blockchain class was implement, the genesis block will be created as first block
+        # when a new blockchain class was created, the genesis block will be created as first block
         genesis_block = genGenesisBlock()
         self.blocks.append(genesis_block)
-        # blockchain difficulty
-
-        utxos = ''
-
-        publicKey = ''
-        privateKey = ''
-
-        publicKeyList = []
-
-        diffInterval = 2
 
 
 def NewBlockchain():
@@ -79,24 +64,6 @@ def setCoinBaseTx(address):
     return coinbaseTx
 
 
-def addNewBlock(blocks, tx_list, index, previousHash, nonce, address):
-    # add coinbase TX
-    # tx_list.append(setCoinBaseTx(address))
-    hash_code, newBlock = genNewBlock(blocks, tx_list, index, previousHash, nonce)
-    if newBlock:
-        newBlock.setTransactions(tx_list)
-    return hash_code, newBlock
-
-    # print("new block found! Block index:", index)
-    # # deep copy tx list
-    # newBlockTxList = []
-    # for i in tx_list:
-    #     newBlockTxList.append(i)
-    # newBlock.setTransactions(newBlockTxList)
-    #
-    # return newBlock
-
-
 def genNewBlock(blocks, tx_list, index, previousHash, nonce):
     # initiate block parameters
     # nonce = 0
@@ -117,14 +84,6 @@ def genNewBlock(blocks, tx_list, index, previousHash, nonce):
     return hash_code, Block(index, hashValue, previousHash, rootHash, nonce, timestamp)
 
 
-# def checkHashAndDiffculty(hashValue, difficulty):
-#     target = 2 ** (256 - difficulty)
-#     if int(hashValue, 16) < target:
-#         return True
-#     else:
-#         return False
-
-
 def calculateHash(index, timestamp, previousHash, rootHash, nonce):
     rawString = str(index) + str(timestamp) + str(previousHash) + str(rootHash) + str(nonce)
 
@@ -134,43 +93,6 @@ def calculateHash(index, timestamp, previousHash, rootHash, nonce):
     hash_result = hashlib.sha256(hash.encode("utf-8")).hexdigest()
     # print('hash result:',hash_result)
     return hash_result
-
-
-# def getDifficulty(blocks):
-#     latestBlock = blocks[-1]
-#
-#     # adjust difficulty every diffInterval blocks e.g.: every 2 blocks
-#     if latestBlock.index % diffInterval == 0 and latestBlock.index != 0:
-#         newDifficulty = adjustDiffculty(latestBlock, blocks)
-#         # print("Difficulty adjusted to", newDifficulty)
-#         return newDifficulty
-#     else:
-#         return latestBlock.difficulty
-
-
-# def adjustDiffculty(latestBlock, currentBlockchain):
-#     # the time interval to gen a new block
-#     genBlockIntervel = 5
-#
-#     # get last adjusted block
-#     lastAdjustedBlock = currentBlockchain[len(currentBlockchain) - diffInterval]
-#     # print('current chain size:', len(currentBlockchain))
-#     # expected time to gen a new block
-#     timeExpected = genBlockIntervel * diffInterval
-#
-#     # actual time to gen a new block
-#     timeUsed = int(latestBlock.timestamp) - int(lastAdjustedBlock.timestamp)
-#     # print('latestBlock:', latestBlock.index, latestBlock.timestamp)
-#     # print('lastAdjustedBlock:', lastAdjustedBlock.index, lastAdjustedBlock.timestamp)
-#     # print('timeUsed:', timeUsed)
-#     # adjust difficulty based on the gen block time interval
-#     # to be fixed
-#     if timeExpected > timeUsed:
-#         return lastAdjustedBlock.difficulty + 1
-#     elif timeExpected < timeUsed:
-#         return lastAdjustedBlock.difficulty - 1
-#     else:
-#         return lastAdjustedBlock.difficulty
 
 
 def genRootHash(tx_list):
@@ -200,9 +122,6 @@ def genUTXOs(blocks):
 
             txInofTx = tx.TxInList
             txOutofTx = tx.TxOutList
-
-            # print("txInofTx:",txInofTx)
-            # print("txOutofTx:",txOutofTx)
 
             # get all txIn
             for i in range(len(txInofTx)):
@@ -234,103 +153,169 @@ def isValidBlock(blockchain, block):
     if block.hash != hash_result:
         return False
 
-    utxos = genUTXOs(blockchain)
-
-    # if not isValidTxInBlock(block, utxos.utxos):
-    #     return False
+    genUTXOs(blockchain)
 
     return True
 
 
-def isValidTxInBlock(block, utxos):
-    txList = block.transactionList
+def saveBlocktoDB(mycol, block):
+    b_dict = block2Dict(block)
+    mydict = {"_id": block.index, "block info": b_dict}
 
-    for tx in txList:
-        if isValidTx(tx, utxos):
-            continue
-        else:
-            print("Invalid TX:", tx.TxId)
-            return False
-
-    return True
+    x = mycol.insert_one(mydict)
 
 
-# def isValidTx(newTx, utxos):
-#     for txIn in newTx.TxInList:
-#         key = txIn.TxOutId + '[' + str(txIn.TxOutIndex) + ']'
-#         if key not in utxos.keys():
-#             return False
-#         else:
-#             newtxOut = utxos[key]
-#
-#             # check signature TODO
-#
-#             for txOut in newTx.TxOutList:
-#                 if txOut.amount > newtxOut.amount:
-#                     return False
-#                 elif txOut.amount < newtxOut.amount:
-#                     diff = newtxOut.amount - txOut.amount
-#                     return True
-#
-#     # return True
+def getBlockchainFromDB(mycol, blockchain):
+    # db_blockchain = []
+    for x in mycol.find():
+        db_block = dict2Block(x['block info'])
+        # db_blockchain.append(db_block)
+        blockchain.append(db_block)
+
+    # return db_blockchain
 
 
-def isValidSign(pk, signature, message):
-    # verify the signature using public key
-    try:
-        pk.verify(signature, message, ec.ECDSA(hashes.SHA256()))
-    except:
-        return "false"
+def getBlockFromDB(mycol, blockIndex):
+    myquery = {"_id": blockIndex}
+
+    mydoc = mycol.find(myquery)
+    block = None
+
+    for x in mydoc:
+        block = dict2Block(x['block info'])
+
+    return block
+
+
+def msg2txList(msgtxList):
+    txList = []
+
+    for msgtx in msgtxList:
+        txInList = []
+        txOutList = []
+
+        for msgTxIn in msgtx.TxInList:
+            txIn = TxIn(msgTxIn.TxOutId, msgTxIn.TxOutIndex, msgTxIn.signature)
+            txInList.append(txIn)
+
+        for msgTxOut in msgtx.TxOutList:
+            addr = VerifyingKey.from_pem(msgTxOut.address.encode())
+            txOut = TxOut(addr, msgTxOut.amount)
+            txOutList.append(txOut)
+
+        tx = Transaction(txInList, txOutList)
+        # print("old", tx.TxId)
+        tx.setTxID(msgtx.TxId)
+        # print("new set tx id", tx.TxId)
+        # print()
+        txList.append(tx)
+
+    return txList
+
+
+def block2Dict(block):
+    b_dict = {}
+    b_dict['index'] = block.index
+    b_dict['hash'] = block.hash
+    b_dict['prevBlockHash'] = block.prevBlockHash
+    b_dict['rootHash'] = block.rootHash
+    b_dict['nonce'] = block.nonce
+    b_dict['timestamp'] = block.timestamp
+
+    txList2dict = []
+    for tx in block.transactionList:
+        txList2dict.append(tx2dict(tx))
+
+    b_dict['transactionList'] = txList2dict
+
+    return b_dict
+
+
+def tx2dict(tx):
+    tx_dict = {}
+    tx_dict['TxId'] = tx.TxId
+    txIn_list = []
+    txOut_list = []
+    for txIn in tx.TxInList:
+        txIn_list.append(txIn2Dict(txIn))
+
+    for txOut in tx.TxOutList:
+        txOut_list.append(txOut2Dict(txOut))
+
+    tx_dict['TxInList'] = txIn_list
+    tx_dict['TxOutList'] = txOut_list
+
+    return tx_dict
+
+
+def txIn2Dict(txIn):
+    txIn_dict = {'TxOutId': txIn.TxOutId, 'TxOutIndex': txIn.TxOutIndex, 'signature': txIn.signature}
+    return txIn_dict
+
+
+def txOut2Dict(txOut):
+    if not isinstance(txOut.address, str):
+        addr = txOut.address.to_pem().decode()
     else:
-        return "true"
+        addr = txOut.address
+    txOut_dict = {'address': addr, 'amount': txOut.amount}
+    return txOut_dict
 
 
-def sendTX():
-    # TODO
-    print()
+def dict2Block(b_dict):
+    index = b_dict['index']
+    hash = b_dict['hash']
+    prevBlockHash = b_dict['prevBlockHash']
+    rootHash = b_dict['rootHash']
+    nonce = b_dict['nonce']
+    timestamp = b_dict['timestamp']
+
+    block = Block(index, hash, prevBlockHash, rootHash, nonce, timestamp)
+    txList = []
+    for tx_dict in b_dict['transactionList']:
+        txList.append(dict2Tx(tx_dict))
+
+    block.setTransactions(txList)
+
+    return block
 
 
-def buildNewTransaction(id, index, signature, address, amount):
-    newTxIn = []
-    newTxIn = newTxIn.append(TxIn(id, index, signature))
-    newTxOut = []
-    newTxOut = newTxOut.append(TxOut(address, amount))
-    NewTransaction = Transaction(newTxIn, newTxOut)
-    return NewTransaction
+def dict2Tx(tx_dict):
+    TxId = tx_dict['TxId']
+    TxInList = tx_dict['TxInList']
+    TxOutList = tx_dict['TxOutList']
+
+    tx = Transaction(dict2TxIn(TxInList), dict2TxOut(TxOutList))
+    tx.setTxID(TxId)
+
+    return tx
 
 
-# def isValidTx(newTx, utxos):
-#     for txIn in newTx.TxInList:
-#         key = txIn.TxOutId + '[' + str(txIn.TxOutIndex) + ']'
-#         if key not in utxos.keys():
-#             return False
-#         else:
-#             newtxOut = utxos[key]
-#
-#             # check signature TODO
-#             if (ECDSA.verify(newtxOut.address, txIn.Signature, '123') == "true"):
-#                 for txOut in newTx.TxOutList:
-#                     if txOut.amount > newtxOut.amount:
-#                         return False
-#                     elif txOut.amount <= newtxOut.amount:
-#                         diff = newtxOut.amount - txOut.amount
-#                         return True, diff
-#             else:
-#                 return False
+def dict2TxIn(txInList_dict):
+    TxInList = []
 
-def isValidTx(newTx, utxos):
-    for txIn in newTx.TxInList:
-        key = txIn.TxOutId + '[' + str(txIn.TxOutIndex) + ']'
-        if key not in utxos.keys():
-            return False
-        else:
-            newtxOut = utxos[key]
+    for txIn in txInList_dict:
+        TxOutId = txIn['TxOutId']
+        TxOutIndex = txIn['TxOutIndex']
+        signature = txIn['signature']
 
-            # check signature TODO
+        newtxIn = TxIn(TxOutId, TxOutIndex, signature)
+        TxInList.append(newtxIn)
+    return TxInList
 
-            for txOut in newTx.TxOutList:
-                if txOut.amount > newtxOut.amount:
-                    return False
-                elif txOut.amount < newtxOut.amount:
-                    diff = newtxOut.amount - txOut.amount
-                    return True
+
+def dict2TxOut(txOutList_dict):
+    TxOutList = []
+
+    for txOut in txOutList_dict:
+        address = str(txOut['address'])
+        # print("new addr",type(address))
+        # print(address.encode())
+        vk = VerifyingKey.from_pem(address.encode())
+        # print("addr", vk)
+
+        amount = txOut['amount']
+
+        newtxOut = TxOut(vk, amount)
+        TxOutList.append(newtxOut)
+    return TxOutList

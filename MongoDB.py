@@ -1,5 +1,3 @@
-import pymongo
-from bc_server import dict2Block
 from bc_server import *
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")

@@ -13,7 +13,8 @@ class MainPage(object):
         self.page = Frame(self.root)  # 创建Frame
         self.page.pack()
 
-        Button(self.page, text='PolyU Go', font=10, width=15, height=3, command=self.goGamePage).pack(
+        Button(self.page, text="PolyU Go", font=10, width=15, height=3,
+               command=self.goGamePage).pack(
             fill=X,
             pady=60,
             padx=10)
@@ -28,7 +29,7 @@ class MainPage(object):
     def goGamePage(self):
         self.page.destroy()
         gamePage(self.root)
-        self.root.title('PolyU Go')
+        self.root.title(f"PolyU Go [{starter1.minerIndex}]")
 
     def goShowUTXOsPage(self):
         self.page.destroy()
@@ -86,19 +87,14 @@ class gamePage(object):
         if remainingTimes > 0:
             guess = self.guess.get()
             # call mining function TODO
-
-            guessResult = mineBlock(int(guess))
-            if guessResult:
-                keyofOwner, blockHash = Owner.mineABlock(int(guess))
-                feddback = f"Find a new block at position[{guess}]!\nThe block hash is {blockHash}"
-                self.result.set(feddback)
-                # update map
-                rawMap[int(guess) - 1] = keyofOwner
-                print("Map", rawMap)
-
+            result = Owner.checkResult(guess)
+            if result.startswith("Failed"):
+                self.result.set(result)
             else:
-                self.result.set("Failed")
-
+                # find a new block
+                blockHash = result
+                feedback = f"Find a new block at position[{guess}]!\nThe block hash is {blockHash}"
+                self.result.set(feedback)
             self.opportunities.set(str(remainingTimes - 1))
         else:
             feedback = "You have run out of opportunities\n" + "Go to work!!"
@@ -109,7 +105,7 @@ class gamePage(object):
         self.guess.set("")
         self.result.set("")
         self.opportunities.set("")
-        updateMap()
+        Owner.refreshMap()
 
     def goMainPage(self):
         self.page.destroy()
@@ -228,12 +224,6 @@ class showBlockPage(object):
         self.root.title(f"Miner {starter1.minerIndex}")
 
 
-# from document_retriever.retriever import TfidfDocRanker
-# from document_reader.reader import Predictor
-# from qaSystem import QaSystem
-
-# retriever = None
-# reader = None
 starter1 = None
 Owner = None
 
@@ -244,7 +234,6 @@ class runGUI:
         global Owner
         starter1 = starter
         Owner = starter.miner
-        # self.stater = stater
 
     def run(self):
         print("GUI go")
@@ -253,48 +242,6 @@ class runGUI:
         root.title(f"Miner {starter1.minerIndex}")
         MainPage(root)
         root.mainloop()
-
-
-def mineBlock(guess):
-    guesstarget = rawMap[guess - 1]
-
-    if guesstarget == 1:
-
-        return True
-    else:
-        return False
-
-
-def updateMap():
-    # delete previous block
-    for i in range(5, 100):
-        if rawMap[i] == 1:
-            rawMap[i] = 0
-    import random
-
-    # generate target list and update map
-    targetIndexList = []
-
-    for i in range(numOfTarget):
-        idx = random.randint(0, 99)
-        # check whether the position has been mined
-        while rawMap[idx] != 0:
-            idx = random.randint(0, 100)
-        targetIndexList.append(idx)
-
-    for target in targetIndexList:
-        rawMap[target] = 1
-
-    print("Map:", rawMap)
-
-
-length = 100
-numOfTarget = 10
-rawMap = [1, 1, 1, 1, 1]
-for i in range(length - 5):
-    rawMap.append(0)
-
-# for demo purpose, we define the first 5 choice are valid target
 
 
 if __name__ == "__main__":
