@@ -36,43 +36,43 @@ class BlockchainServer(blockchain_pb2_grpc.BlockChainServicer):
         return response
 
     # Receive miner's transaction and expected hash. And return the result or the address of the new block to the miner.
-    def addNewBlock(self, request, context):
-        current_blockIndex = len(self.blockchain.blocks)
-        previousBlockHash = self.blockchain.blocks[current_blockIndex - 1].hash
-        nonce = request.nonce
-        # print("local TX:", self.localTxList)
-        hash_code, block = addNewBlock(self.blockchain.blocks, self.localTxList, current_blockIndex, previousBlockHash,
-                                       nonce, self.publicKey)
-
-        if block:
-            # mydict = {"_id": block.index, "block info": block}
-            # x = self.col.insert_one(mydict)
-
-            self.blockchain.blocks.append(block)
-            saveBlocktoDB(self.col, block)
-            print(f"Block {block.index} saved in to storage!")
-            # time.sleep(5)
-
-            print("Blockchain updated: ")
-            for i in range(len(self.blockchain.blocks)):
-                print("block " + str(i) + ":")
-                print('block hash = ' + self.blockchain.blocks[i].hash)
-                # print('block transaction = ' + self.blockchain.blocks[i].Transaction)
-            print()
-
-            pb2_block = blockchain_pb2.Block(index=block.index, hash=block.hash, prevBlockHash=block.prevBlockHash,
-                                             rootHash=block.rootHash, difficulty=block.difficulty, nonce=block.nonce,
-                                             timestamp=block.timestamp,
-                                             transactionList=txList2msg(block.transactionList))
-
-            return blockchain_pb2.AddBlockResponse(hash=hash_code, newBlock=pb2_block)
-        else:
-            return blockchain_pb2.AddBlockResponse(hash=hash_code, newBlock=None)
+    # def addNewBlock(self, request, context):
+    #     current_blockIndex = len(self.blockchain.blocks)
+    #     previousBlockHash = self.blockchain.blocks[current_blockIndex - 1].hash
+    #     nonce = request.nonce
+    #     # print("local TX:", self.localTxList)
+    #     hash_code, block = addNewBlock(self.blockchain.blocks, self.localTxList, current_blockIndex, previousBlockHash,
+    #                                    nonce, self.publicKey)
+    #
+    #     if block:
+    #         # mydict = {"_id": block.index, "block info": block}
+    #         # x = self.col.insert_one(mydict)
+    #
+    #         self.blockchain.blocks.append(block)
+    #         saveBlocktoDB(self.col, block)
+    #         print(f"Block {block.index} saved in to storage!")
+    #         # time.sleep(5)
+    #
+    #         print("Blockchain updated: ")
+    #         for i in range(len(self.blockchain.blocks)):
+    #             print("block " + str(i) + ":")
+    #             print('block hash = ' + self.blockchain.blocks[i].hash)
+    #             # print('block transaction = ' + self.blockchain.blocks[i].Transaction)
+    #         print()
+    #
+    #         pb2_block = blockchain_pb2.Block(index=block.index, hash=block.hash, prevBlockHash=block.prevBlockHash,
+    #                                          rootHash=block.rootHash, nonce=block.nonce,
+    #                                          timestamp=block.timestamp,
+    #                                          transactionList=txList2msg(block.transactionList))
+    #
+    #         return blockchain_pb2.AddBlockResponse(hash=hash_code, newBlock=pb2_block)
+    #     else:
+    #         return blockchain_pb2.AddBlockResponse(hash=hash_code, newBlock=None)
 
     def receiveBlock(self, request, context):
         print(request.message)
         msgBlock = request.newBlock
-        block = Block(msgBlock.index, msgBlock.hash, msgBlock.prevBlockHash, msgBlock.rootHash, msgBlock.difficulty,
+        block = Block(msgBlock.index, msgBlock.hash, msgBlock.prevBlockHash, msgBlock.rootHash,
                       msgBlock.nonce, msgBlock.timestamp)
         msgTxList = msgBlock.transactionList
         block.setTransactions(msg2txList(msgTxList))
@@ -112,12 +112,45 @@ class BlockchainServer(blockchain_pb2_grpc.BlockChainServicer):
             block = self.blockchain.blocks[block_idx]
 
             pb2_block = blockchain_pb2.Block(index=block.index, hash=block.hash, prevBlockHash=block.prevBlockHash,
-                                             rootHash=block.rootHash, difficulty=block.difficulty, nonce=block.nonce,
+                                             rootHash=block.rootHash, nonce=block.nonce,
                                              timestamp=block.timestamp,
                                              transactionList=txList2msg(block.transactionList))
             # print("needed block:", pb2_block)
             msg = f"Here is block {block_idx}"
             response = blockchain_pb2.receiveMessageResponse(message=msg, newBlock=pb2_block)
+            return response
+        if req.startswith("Gen Block"):
+            target = int(req.split(":")[-1])
+            print(f"{self.clientIndex} found a new target at", target)
+            current_blockIndex = len(self.blockchain.blocks)
+            previousBlockHash = self.blockchain.blocks[current_blockIndex - 1].hash
+            hash_code, block = genNewBlock(self.blockchain.blocks, self.localTxList, current_blockIndex,
+                                           previousBlockHash,
+                                           target)
+            block.setTransactions(self.localTxList)
+            self.blockchain.blocks.append(block)
+            saveBlocktoDB(self.col, block)
+            print(f"Block {block.index} saved in to storage!")
+            # time.sleep(5)
+
+            print("Blockchain updated: ")
+            for i in range(len(self.blockchain.blocks)):
+                print("block " + str(i) + ":")
+                print('block hash = ' + self.blockchain.blocks[i].hash)
+                # print('block transaction = ' + self.blockchain.blocks[i].Transaction)
+            print()
+
+            pb2_block = blockchain_pb2.Block(index=block.index, hash=block.hash, prevBlockHash=block.prevBlockHash,
+                                             rootHash=block.rootHash, nonce=block.nonce,
+                                             timestamp=block.timestamp,
+                                             transactionList=txList2msg(block.transactionList))
+
+            addr = self.publicKey.to_pem().decode()
+            hash = hashlib.sha256((addr).encode("utf-8")).hexdigest()
+            hash_result = hashlib.sha256(hash.encode("utf-8")).hexdigest()
+
+
+            response = blockchain_pb2.receiveMessageResponse(message=hash_result, newBlock=pb2_block)
             return response
 
             # initialize server state
@@ -320,7 +353,6 @@ def block2Dict(block):
     b_dict['hash'] = block.hash
     b_dict['prevBlockHash'] = block.prevBlockHash
     b_dict['rootHash'] = block.rootHash
-    b_dict['difficulty'] = block.difficulty
     b_dict['nonce'] = block.nonce
     b_dict['timestamp'] = block.timestamp
 
@@ -372,11 +404,10 @@ def dict2Block(b_dict):
     hash = b_dict['hash']
     prevBlockHash = b_dict['prevBlockHash']
     rootHash = b_dict['rootHash']
-    difficulty = b_dict['difficulty']
     nonce = b_dict['nonce']
     timestamp = b_dict['timestamp']
 
-    block = Block(index, hash, prevBlockHash, rootHash, difficulty, nonce, timestamp)
+    block = Block(index, hash, prevBlockHash, rootHash, nonce, timestamp)
     txList = []
     for tx_dict in b_dict['transactionList']:
         txList.append(dict2Tx(tx_dict))

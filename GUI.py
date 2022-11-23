@@ -13,7 +13,7 @@ class MainPage(object):
         self.page = Frame(self.root)  # 创建Frame
         self.page.pack()
 
-        Button(self.page, text='Send Transaction', font=10, width=15, height=3, command=self.goSendTXPage).pack(
+        Button(self.page, text='PolyU Go', font=10, width=15, height=3, command=self.goGamePage).pack(
             fill=X,
             pady=60,
             padx=10)
@@ -25,10 +25,10 @@ class MainPage(object):
             pady=40,
             padx=10)
 
-    def goSendTXPage(self):
+    def goGamePage(self):
         self.page.destroy()
-        sendTXPage(self.root)
-        self.root.title('Send Transaction')
+        gamePage(self.root)
+        self.root.title('PolyU Go')
 
     def goShowUTXOsPage(self):
         self.page.destroy()
@@ -41,14 +41,14 @@ class MainPage(object):
         self.root.title('Show Block Info')
 
 
-class sendTXPage(object):
+class gamePage(object):
     def __init__(self, master=None):
         self.root = master
         # self.root.geometry('%dx%d' % (500, 500))
-        self.txOutID = StringVar()
-        self.txOutIndex = StringVar()
-        self.address = StringVar()
-        self.amount = StringVar()
+        self.efforts = StringVar()
+        self.guess = StringVar()
+        self.result = StringVar()
+        self.opportunities = StringVar()
         self.createPage()
 
     def createPage(self):
@@ -56,25 +56,60 @@ class sendTXPage(object):
         self.page.pack()
 
         Label(self.page).grid(row=0, stick=W)
-        Label(self.page, text='Transaction Output ID: ').grid(row=1, stick=W, pady=10, column=0)
-        Entry(self.page, textvariable=self.txOutID).grid(row=2, stick=W, pady=10, ipadx=20)
-        Label(self.page, text='Transaction Output Index: ').grid(row=3, stick=W, pady=10, column=0)
-        Entry(self.page, textvariable=self.txOutIndex).grid(row=4, stick=W, pady=10, ipadx=20)
-        Label(self.page, text='Receiver Address: ').grid(row=5, stick=W, pady=10, column=0)
-        Entry(self.page, textvariable=self.address).grid(row=6, stick=W, pady=10, ipadx=20)
-        Label(self.page, text='Amount: ').grid(row=7, stick=W, pady=10, column=0)
-        Entry(self.page, textvariable=self.amount).grid(row=8, stick=W, pady=10, ipadx=20)
-        Button(self.page, text='Send', command=self.sendTX).grid(row=9, stick=W, pady=10)
-        # Button(self.page, text='Clean Text', command=self.clean).grid(row=6, stick=W, pady=10)
-        Button(self.page, text='Back', command=self.goMainPage).grid(row=10, stick=W, pady=10)
+        Label(self.page, text='Daily efforts: ').grid(row=1, stick=W, pady=10, column=0)
+        Entry(self.page, textvariable=self.efforts).grid(row=2, stick=W, pady=10, ipadx=20)
+        Button(self.page, text='Redeem', command=self.reedemEffort).grid(row=3, stick=W, pady=10)
+        Label(self.page, text='Remaining opportunities: ').grid(row=4, stick=W, pady=10)
+        Label(self.page, bg="white", textvariable=self.opportunities, anchor=NW, justify='left', width=21).grid(row=5,
+                                                                                                                stick=W,
+                                                                                                                pady=10)
 
-    def sendTX(self):
-        txOutID = self.txOutID.get()
-        txOutIndex = self.txOutIndex.get()
-        address = self.address.get()
-        amount = self.amount.get()
+        Label(self.page, text='Guess position: ').grid(row=6, stick=W, pady=10, column=0)
+        Entry(self.page, textvariable=self.guess).grid(row=7, stick=W, pady=10, ipadx=20)
+        Button(self.page, text='Go', command=self.checkResult).grid(row=8, stick=W, pady=10)
+        Label(self.page, text='Result: ').grid(row=9, stick=W, pady=10)
+        Label(self.page, bg="white", textvariable=self.result, anchor=NW, justify='left', width=21).grid(row=10,
+                                                                                                         stick=W,
+                                                                                                         pady=10,
+                                                                                                         ipadx=200,
+                                                                                                         ipady=100)
 
-        # send trasnaction TODO
+        Button(self.page, text='Update Map', command=self.clean).grid(row=11, stick=W, pady=10)
+        Button(self.page, text='Back', command=self.goMainPage).grid(row=12, stick=W, pady=10)
+
+    def reedemEffort(self):
+        efforts = self.efforts.get()
+        self.opportunities.set(efforts)
+
+    def checkResult(self):
+        remainingTimes = int(self.opportunities.get())
+        if remainingTimes > 0:
+            guess = self.guess.get()
+            # call mining function TODO
+
+            guessResult = mineBlock(int(guess))
+            if guessResult:
+                keyofOwner, blockHash = Owner.mineABlock(int(guess))
+                feddback = f"Find a new block at position[{guess}]!\nThe block hash is {blockHash}"
+                self.result.set(feddback)
+                # update map
+                rawMap[int(guess) - 1] = keyofOwner
+                print("Map", rawMap)
+
+            else:
+                self.result.set("Failed")
+
+            self.opportunities.set(str(remainingTimes - 1))
+        else:
+            feedback = "You have run out of opportunities\n" + "Go to work!!"
+            self.result.set(feedback)
+
+    def clean(self):
+        self.efforts.set("")
+        self.guess.set("")
+        self.result.set("")
+        self.opportunities.set("")
+        updateMap()
 
     def goMainPage(self):
         self.page.destroy()
@@ -200,12 +235,15 @@ class showBlockPage(object):
 # retriever = None
 # reader = None
 starter1 = None
+Owner = None
 
 
 class runGUI:
     def __init__(self, starter):
         global starter1
+        global Owner
         starter1 = starter
+        Owner = starter.miner
         # self.stater = stater
 
     def run(self):
@@ -215,6 +253,48 @@ class runGUI:
         root.title(f"Miner {starter1.minerIndex}")
         MainPage(root)
         root.mainloop()
+
+
+def mineBlock(guess):
+    guesstarget = rawMap[guess - 1]
+
+    if guesstarget == 1:
+
+        return True
+    else:
+        return False
+
+
+def updateMap():
+    # delete previous block
+    for i in range(5, 100):
+        if rawMap[i] == 1:
+            rawMap[i] = 0
+    import random
+
+    # generate target list and update map
+    targetIndexList = []
+
+    for i in range(numOfTarget):
+        idx = random.randint(0, 99)
+        # check whether the position has been mined
+        while rawMap[idx] != 0:
+            idx = random.randint(0, 100)
+        targetIndexList.append(idx)
+
+    for target in targetIndexList:
+        rawMap[target] = 1
+
+    print("Map:", rawMap)
+
+
+length = 100
+numOfTarget = 10
+rawMap = [1, 1, 1, 1, 1]
+for i in range(length - 5):
+    rawMap.append(0)
+
+# for demo purpose, we define the first 5 choice are valid target
 
 
 if __name__ == "__main__":

@@ -36,12 +36,12 @@ def main():
     print(f'verification: {ver_res}')
 
 
-def genKey():
+def genKey(index):
     sk = SigningKey.generate(curve=SECP256k1)
     vk = sk.verifying_key
-    with open("keypair/private4.pem", "wb") as f:
+    with open(f"keypair/private{index}.pem", "wb") as f:
         f.write(sk.to_pem())
-    with open("keypair/public4.pem", "wb") as f:
+    with open(f"keypair/public{index}.pem", "wb") as f:
         f.write(vk.to_pem())
 
 

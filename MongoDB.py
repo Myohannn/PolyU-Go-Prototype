@@ -8,13 +8,13 @@ mydb = myclient["BlockchainDB"]
 
 mycol1 = mydb["miner0"]
 mycol2 = mydb["miner1"]
-# mycol3 = mydb["miner1"]
-# mycol4 = mydb["miner1"]
+mycol3 = mydb["miner2"]
+mycol4 = mydb["miner3"]
 #
-# mycol1.drop()
-# mycol2.drop()
-# mycol3.drop()
-# mycol4.drop()
+mycol1.drop()
+mycol2.drop()
+mycol3.drop()
+mycol4.drop()
 
 for x in mycol1.find():
     print(x)

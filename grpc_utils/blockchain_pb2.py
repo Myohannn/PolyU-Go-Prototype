@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x1bgrpc_utils/blockchain.proto\"$\n\x11InitTxListRequest\x12\x0f\n\x07message\x18\x01 \x01(\t\"%\n\x12InitTxListResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\"5\n\x0f\x41\x64\x64\x42lockRequest\x12\x13\n\x0btransaction\x18\x01 \x01(\t\x12\r\n\x05nonce\x18\x02 \x01(\x05\":\n\x10\x41\x64\x64\x42lockResponse\x12\x0c\n\x04hash\x18\x01 \x01(\t\x12\x18\n\x08newBlock\x18\x02 \x01(\x0b\x32\x06.Block\"\xaa\x01\n\x05\x42lock\x12\r\n\x05index\x18\x01 \x01(\x05\x12\x0c\n\x04hash\x18\x02 \x01(\t\x12\x15\n\rprevBlockHash\x18\x03 \x01(\t\x12\x10\n\x08rootHash\x18\x04 \x01(\t\x12\x12\n\ndifficulty\x18\x05 \x01(\x05\x12\r\n\x05nonce\x18\x06 \x01(\x05\x12\x11\n\ttimestamp\x18\x07 \x01(\t\x12%\n\x0ftransactionList\x18\x08 \x03(\x0b\x32\x0c.Transaction\"O\n\x0bTransaction\x12\x0c\n\x04TxId\x18\x01 \x01(\t\x12\x17\n\x08TxInList\x18\x02 \x03(\x0b\x32\x05.TxIn\x12\x19\n\tTxOutList\x18\x03 \x03(\x0b\x32\x06.TxOut\">\n\x04TxIn\x12\x0f\n\x07TxOutId\x18\x01 \x01(\t\x12\x12\n\nTxOutIndex\x18\x02 \x01(\x05\x12\x11\n\tsignature\x18\x03 \x01(\t\"(\n\x05TxOut\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x0e\n\x06\x61mount\x18\x02 \x01(\x01\")\n\x16QueryBlockchainRequest\x12\x0f\n\x07message\x18\x01 \x01(\t\"1\n\x17QueryBlockchainResponse\x12\x16\n\x06\x62locks\x18\x01 \x03(\x0b\x32\x06.Block\"$\n\x11QueryBlockRequest\x12\x0f\n\x07message\x18\x01 \x01(\t\"+\n\x12QueryBlockResponse\x12\x15\n\x05\x62lock\x18\x01 \x01(\x0b\x32\x06.Block\"@\n\x13ReceiveBlockRequest\x12\x0f\n\x07message\x18\x01 \x01(\t\x12\x18\n\x08newBlock\x18\x02 \x01(\x0b\x32\x06.Block\"\'\n\x14ReceiveBlockResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\"3\n\x05UTXOs\x12\x0b\n\x03key\x18\x01 \x03(\t\x12\x0e\n\x06\x61mount\x18\x02 \x03(\x01\x12\r\n\x05owner\x18\x03 \x03(\t\"\"\n\x0fgetUTXOsRequest\x12\x0f\n\x07message\x18\x01 \x01(\t\":\n\x10getUTXOsResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\x12\x15\n\x05utxos\x18\x02 \x01(\x0b\x32\x06.UTXOs\"\"\n\x0fgetStateRequest\x12\x0f\n\x07message\x18\x01 \x01(\x05\"#\n\x10getStateResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\"*\n\x0fgetchainRequest\x12\x17\n\x0fgetchainRequest\x18\x01 \x01(\t\"*\n\x10getchainResponse\x12\x16\n\x06\x62locks\x18\x01 \x03(\x0b\x32\x06.Block\"-\n\raddNewRequest\x12\x1c\n\x06\x61\x64\x64new\x18\x01 \x01(\x0b\x32\x0c.Transaction\"#\n\x0e\x61\x64\x64NewResponse\x12\x11\n\taddresult\x18\x01 \x01(\t\">\n\x16sendTransactionRequest\x12$\n\x0enewtransaction\x18\x01 \x01(\x0b\x32\x0c.Transaction\"5\n\x17sendTransactionResponse\x12\x1a\n\x12whethercantransfer\x18\x01 \x01(\t\"!\n\x0eQueryDBRequest\x12\x0f\n\x07message\x18\x01 \x01(\t\"\"\n\x0fQueryDBResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\"-\n\x1aQueryLatestBlockIdxRequest\x12\x0f\n\x07message\x18\x01 \x01(\t\",\n\x1bQueryLatestBlockIdxResponse\x12\r\n\x05index\x18\x01 \x01(\x05\"(\n\x15receiveMessageRequest\x12\x0f\n\x07message\x18\x01 \x01(\t\"C\n\x16receiveMessageResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\x12\x18\n\x08newBlock\x18\x02 \x01(\x0b\x32\x06.Block2\xc9\x05\n\nBlockChain\x12\x37\n\ninitTxList\x12\x12.InitTxListRequest\x1a\x13.InitTxListResponse\"\x00\x12\x34\n\x0b\x61\x64\x64NewBlock\x12\x10.AddBlockRequest\x1a\x11.AddBlockResponse\"\x00\x12\x46\n\x0fQueryBlockchain\x12\x17.QueryBlockchainRequest\x1a\x18.QueryBlockchainResponse\"\x00\x12\x37\n\nQueryBlock\x12\x12.QueryBlockRequest\x1a\x13.QueryBlockResponse\"\x00\x12=\n\x0creceiveBlock\x12\x14.ReceiveBlockRequest\x1a\x15.ReceiveBlockResponse\"\x00\x12\x43\n\x0ereceiveMessage\x12\x16.receiveMessageRequest\x1a\x17.receiveMessageResponse\"\x00\x12\x31\n\x08getUTXOs\x12\x10.getUTXOsRequest\x1a\x11.getUTXOsResponse\"\x00\x12\x31\n\x08getState\x12\x10.getStateRequest\x1a\x11.getStateResponse\"\x00\x12\x31\n\x08getchain\x12\x10.getchainRequest\x1a\x11.getchainResponse\"\x00\x12\x46\n\x0fsendTransaction\x12\x17.sendTransactionRequest\x1a\x18.sendTransactionResponse\"\x00\x12\x36\n\x11\x61\x64\x64Newtransaction\x12\x0e.addNewRequest\x1a\x0f.addNewResponse\"\x00\x12.\n\x07QueryDB\x12\x0f.QueryDBRequest\x1a\x10.QueryDBResponse\"\x00\x62\x06proto3')
+  serialized_pb=_b('\n\x1bgrpc_utils/blockchain.proto\"$\n\x11InitTxListRequest\x12\x0f\n\x07message\x18\x01 \x01(\t\"%\n\x12InitTxListResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\"5\n\x0f\x41\x64\x64\x42lockRequest\x12\x13\n\x0btransaction\x18\x01 \x01(\t\x12\r\n\x05nonce\x18\x02 \x01(\x05\":\n\x10\x41\x64\x64\x42lockResponse\x12\x0c\n\x04hash\x18\x01 \x01(\t\x12\x18\n\x08newBlock\x18\x02 \x01(\x0b\x32\x06.Block\"\x96\x01\n\x05\x42lock\x12\r\n\x05index\x18\x01 \x01(\x05\x12\x0c\n\x04hash\x18\x02 \x01(\t\x12\x15\n\rprevBlockHash\x18\x03 \x01(\t\x12\x10\n\x08rootHash\x18\x04 \x01(\t\x12\r\n\x05nonce\x18\x05 \x01(\x05\x12\x11\n\ttimestamp\x18\x06 \x01(\t\x12%\n\x0ftransactionList\x18\x08 \x03(\x0b\x32\x0c.Transaction\"O\n\x0bTransaction\x12\x0c\n\x04TxId\x18\x01 \x01(\t\x12\x17\n\x08TxInList\x18\x02 \x03(\x0b\x32\x05.TxIn\x12\x19\n\tTxOutList\x18\x03 \x03(\x0b\x32\x06.TxOut\">\n\x04TxIn\x12\x0f\n\x07TxOutId\x18\x01 \x01(\t\x12\x12\n\nTxOutIndex\x18\x02 \x01(\x05\x12\x11\n\tsignature\x18\x03 \x01(\t\"(\n\x05TxOut\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x0e\n\x06\x61mount\x18\x02 \x01(\x01\")\n\x16QueryBlockchainRequest\x12\x0f\n\x07message\x18\x01 \x01(\t\"1\n\x17QueryBlockchainResponse\x12\x16\n\x06\x62locks\x18\x01 \x03(\x0b\x32\x06.Block\"$\n\x11QueryBlockRequest\x12\x0f\n\x07message\x18\x01 \x01(\t\"+\n\x12QueryBlockResponse\x12\x15\n\x05\x62lock\x18\x01 \x01(\x0b\x32\x06.Block\"@\n\x13ReceiveBlockRequest\x12\x0f\n\x07message\x18\x01 \x01(\t\x12\x18\n\x08newBlock\x18\x02 \x01(\x0b\x32\x06.Block\"\'\n\x14ReceiveBlockResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\"3\n\x05UTXOs\x12\x0b\n\x03key\x18\x01 \x03(\t\x12\x0e\n\x06\x61mount\x18\x02 \x03(\x01\x12\r\n\x05owner\x18\x03 \x03(\t\"\"\n\x0fgetUTXOsRequest\x12\x0f\n\x07message\x18\x01 \x01(\t\":\n\x10getUTXOsResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\x12\x15\n\x05utxos\x18\x02 \x01(\x0b\x32\x06.UTXOs\"\"\n\x0fgetStateRequest\x12\x0f\n\x07message\x18\x01 \x01(\x05\"#\n\x10getStateResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\"*\n\x0fgetchainRequest\x12\x17\n\x0fgetchainRequest\x18\x01 \x01(\t\"*\n\x10getchainResponse\x12\x16\n\x06\x62locks\x18\x01 \x03(\x0b\x32\x06.Block\"-\n\raddNewRequest\x12\x1c\n\x06\x61\x64\x64new\x18\x01 \x01(\x0b\x32\x0c.Transaction\"#\n\x0e\x61\x64\x64NewResponse\x12\x11\n\taddresult\x18\x01 \x01(\t\">\n\x16sendTransactionRequest\x12$\n\x0enewtransaction\x18\x01 \x01(\x0b\x32\x0c.Transaction\"5\n\x17sendTransactionResponse\x12\x1a\n\x12whethercantransfer\x18\x01 \x01(\t\"!\n\x0eQueryDBRequest\x12\x0f\n\x07message\x18\x01 \x01(\t\"\"\n\x0fQueryDBResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\"-\n\x1aQueryLatestBlockIdxRequest\x12\x0f\n\x07message\x18\x01 \x01(\t\",\n\x1bQueryLatestBlockIdxResponse\x12\r\n\x05index\x18\x01 \x01(\x05\"(\n\x15receiveMessageRequest\x12\x0f\n\x07message\x18\x01 \x01(\t\"C\n\x16receiveMessageResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\x12\x18\n\x08newBlock\x18\x02 \x01(\x0b\x32\x06.Block2\xc9\x05\n\nBlockChain\x12\x37\n\ninitTxList\x12\x12.InitTxListRequest\x1a\x13.InitTxListResponse\"\x00\x12\x34\n\x0b\x61\x64\x64NewBlock\x12\x10.AddBlockRequest\x1a\x11.AddBlockResponse\"\x00\x12\x46\n\x0fQueryBlockchain\x12\x17.QueryBlockchainRequest\x1a\x18.QueryBlockchainResponse\"\x00\x12\x37\n\nQueryBlock\x12\x12.QueryBlockRequest\x1a\x13.QueryBlockResponse\"\x00\x12=\n\x0creceiveBlock\x12\x14.ReceiveBlockRequest\x1a\x15.ReceiveBlockResponse\"\x00\x12\x43\n\x0ereceiveMessage\x12\x16.receiveMessageRequest\x1a\x17.receiveMessageResponse\"\x00\x12\x31\n\x08getUTXOs\x12\x10.getUTXOsRequest\x1a\x11.getUTXOsResponse\"\x00\x12\x31\n\x08getState\x12\x10.getStateRequest\x1a\x11.getStateResponse\"\x00\x12\x31\n\x08getchain\x12\x10.getchainRequest\x1a\x11.getchainResponse\"\x00\x12\x46\n\x0fsendTransaction\x12\x17.sendTransactionRequest\x1a\x18.sendTransactionResponse\"\x00\x12\x36\n\x11\x61\x64\x64Newtransaction\x12\x0e.addNewRequest\x1a\x0f.addNewResponse\"\x00\x12.\n\x07QueryDB\x12\x0f.QueryDBRequest\x1a\x10.QueryDBResponse\"\x00\x62\x06proto3')
 )
 
 
@@ -199,28 +199,21 @@ _BLOCK = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='difficulty', full_name='Block.difficulty', index=4,
+      name='nonce', full_name='Block.nonce', index=4,
       number=5, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='nonce', full_name='Block.nonce', index=5,
-      number=6, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='timestamp', full_name='Block.timestamp', index=6,
-      number=7, type=9, cpp_type=9, label=1,
+      name='timestamp', full_name='Block.timestamp', index=5,
+      number=6, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='transactionList', full_name='Block.transactionList', index=7,
+      name='transactionList', full_name='Block.transactionList', index=6,
       number=8, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -239,7 +232,7 @@ _BLOCK = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=224,
-  serialized_end=394,
+  serialized_end=374,
 )
 
 
@@ -283,8 +276,8 @@ _TRANSACTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=396,
-  serialized_end=475,
+  serialized_start=376,
+  serialized_end=455,
 )
 
 
@@ -328,8 +321,8 @@ _TXIN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=477,
-  serialized_end=539,
+  serialized_start=457,
+  serialized_end=519,
 )
 
 
@@ -366,8 +359,8 @@ _TXOUT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=541,
-  serialized_end=581,
+  serialized_start=521,
+  serialized_end=561,
 )
 
 
@@ -397,8 +390,8 @@ _QUERYBLOCKCHAINREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=583,
-  serialized_end=624,
+  serialized_start=563,
+  serialized_end=604,
 )
 
 
@@ -428,8 +421,8 @@ _QUERYBLOCKCHAINRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=626,
-  serialized_end=675,
+  serialized_start=606,
+  serialized_end=655,
 )
 
 
@@ -459,8 +452,8 @@ _QUERYBLOCKREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=677,
-  serialized_end=713,
+  serialized_start=657,
+  serialized_end=693,
 )
 
 
@@ -490,8 +483,8 @@ _QUERYBLOCKRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=715,
-  serialized_end=758,
+  serialized_start=695,
+  serialized_end=738,
 )
 
 
@@ -528,8 +521,8 @@ _RECEIVEBLOCKREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=760,
-  serialized_end=824,
+  serialized_start=740,
+  serialized_end=804,
 )
 
 
@@ -559,8 +552,8 @@ _RECEIVEBLOCKRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=826,
-  serialized_end=865,
+  serialized_start=806,
+  serialized_end=845,
 )
 
 
@@ -604,8 +597,8 @@ _UTXOS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=867,
-  serialized_end=918,
+  serialized_start=847,
+  serialized_end=898,
 )
 
 
@@ -635,8 +628,8 @@ _GETUTXOSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=920,
-  serialized_end=954,
+  serialized_start=900,
+  serialized_end=934,
 )
 
 
@@ -673,8 +666,8 @@ _GETUTXOSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=956,
-  serialized_end=1014,
+  serialized_start=936,
+  serialized_end=994,
 )
 
 
@@ -704,8 +697,8 @@ _GETSTATEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1016,
-  serialized_end=1050,
+  serialized_start=996,
+  serialized_end=1030,
 )
 
 
@@ -735,8 +728,8 @@ _GETSTATERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1052,
-  serialized_end=1087,
+  serialized_start=1032,
+  serialized_end=1067,
 )
 
 
@@ -766,8 +759,8 @@ _GETCHAINREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1089,
-  serialized_end=1131,
+  serialized_start=1069,
+  serialized_end=1111,
 )
 
 
@@ -797,8 +790,8 @@ _GETCHAINRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1133,
-  serialized_end=1175,
+  serialized_start=1113,
+  serialized_end=1155,
 )
 
 
@@ -828,8 +821,8 @@ _ADDNEWREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1177,
-  serialized_end=1222,
+  serialized_start=1157,
+  serialized_end=1202,
 )
 
 
@@ -859,8 +852,8 @@ _ADDNEWRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1224,
-  serialized_end=1259,
+  serialized_start=1204,
+  serialized_end=1239,
 )
 
 
@@ -890,8 +883,8 @@ _SENDTRANSACTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1261,
-  serialized_end=1323,
+  serialized_start=1241,
+  serialized_end=1303,
 )
 
 
@@ -921,8 +914,8 @@ _SENDTRANSACTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1325,
-  serialized_end=1378,
+  serialized_start=1305,
+  serialized_end=1358,
 )
 
 
@@ -952,8 +945,8 @@ _QUERYDBREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1380,
-  serialized_end=1413,
+  serialized_start=1360,
+  serialized_end=1393,
 )
 
 
@@ -983,8 +976,8 @@ _QUERYDBRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1415,
-  serialized_end=1449,
+  serialized_start=1395,
+  serialized_end=1429,
 )
 
 
@@ -1014,8 +1007,8 @@ _QUERYLATESTBLOCKIDXREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1451,
-  serialized_end=1496,
+  serialized_start=1431,
+  serialized_end=1476,
 )
 
 
@@ -1045,8 +1038,8 @@ _QUERYLATESTBLOCKIDXRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1498,
-  serialized_end=1542,
+  serialized_start=1478,
+  serialized_end=1522,
 )
 
 
@@ -1076,8 +1069,8 @@ _RECEIVEMESSAGEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1544,
-  serialized_end=1584,
+  serialized_start=1524,
+  serialized_end=1564,
 )
 
 
@@ -1114,8 +1107,8 @@ _RECEIVEMESSAGERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1586,
-  serialized_end=1653,
+  serialized_start=1566,
+  serialized_end=1633,
 )
 
 _ADDBLOCKRESPONSE.fields_by_name['newBlock'].message_type = _BLOCK
@@ -1388,8 +1381,8 @@ _BLOCKCHAIN = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=1656,
-  serialized_end=2369,
+  serialized_start=1636,
+  serialized_end=2349,
   methods=[
   _descriptor.MethodDescriptor(
     name='initTxList',

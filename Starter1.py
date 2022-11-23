@@ -23,9 +23,14 @@ class Starter:
 
         # start client side
         self.miner = bc_Miner(self.minerIndex)
+        # start loading database
         self.miner.run()
-        thread2 = myThread2(2, "Client", 2, self.miner)
-        thread2.start()
+
+
+
+
+        # thread2 = myThread2(2, "Client", 2, self.miner)
+        # thread2.start()
 
         # start GUI
         runGUI(miner0).run()

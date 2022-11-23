@@ -60,7 +60,7 @@ def genGenesisBlock():
 
     # gen genesis block
     genesisBlock = Block(0, 'bf8ffdf71974a51a0862e6d618650bc0', 'bf8ffdf71974a51a0862e6d618650bc0',
-                         'bf8ffdf71974a51a0862e6d618650bc0', 3, 123, '123456')
+                         'bf8ffdf71974a51a0862e6d618650bc0', 123, '123456')
     genesisBlock.setTransactions(genesisTXList)
 
     # add genesis block to blockchain
@@ -101,7 +101,6 @@ def genNewBlock(blocks, tx_list, index, previousHash, nonce):
     # initiate block parameters
     # nonce = 0
     timestamp = getTimestamp()
-    difficulty = getDifficulty(blocks)
 
     # start solving puzzle
     # check whether the miner has synchronized the blockchain
@@ -112,27 +111,22 @@ def genNewBlock(blocks, tx_list, index, previousHash, nonce):
     rootHash = genRootHash(tx_list)
 
     # calculate block hash value
-    hashValue = calculateHash(index, timestamp, previousHash, rootHash, difficulty, nonce)
+    hashValue = calculateHash(index, timestamp, previousHash, rootHash, nonce)
+    hash_code = "New block's hash is" + str(hashValue)
 
-    # check whether hash value satisfy the difficulty
-    if checkHashAndDiffculty(hashValue, difficulty):
-        hash_code = "New block's hash is" + str(hashValue)
-        return hash_code, Block(index, hashValue, previousHash, rootHash, difficulty, nonce, timestamp)
-    else:
-        hash_code = "False"
-        return hash_code, None
+    return hash_code, Block(index, hashValue, previousHash, rootHash, nonce, timestamp)
 
 
-def checkHashAndDiffculty(hashValue, difficulty):
-    target = 2 ** (256 - difficulty)
-    if int(hashValue, 16) < target:
-        return True
-    else:
-        return False
+# def checkHashAndDiffculty(hashValue, difficulty):
+#     target = 2 ** (256 - difficulty)
+#     if int(hashValue, 16) < target:
+#         return True
+#     else:
+#         return False
 
 
-def calculateHash(index, timestamp, previousHash, rootHash, difficulty, nonce):
-    rawString = str(index) + str(timestamp) + str(previousHash) + str(rootHash) + str(difficulty) + str(nonce)
+def calculateHash(index, timestamp, previousHash, rootHash, nonce):
+    rawString = str(index) + str(timestamp) + str(previousHash) + str(rootHash) + str(nonce)
 
     # print("raw string",rawString)
     # apply sha256 twice
@@ -142,41 +136,41 @@ def calculateHash(index, timestamp, previousHash, rootHash, difficulty, nonce):
     return hash_result
 
 
-def getDifficulty(blocks):
-    latestBlock = blocks[-1]
+# def getDifficulty(blocks):
+#     latestBlock = blocks[-1]
+#
+#     # adjust difficulty every diffInterval blocks e.g.: every 2 blocks
+#     if latestBlock.index % diffInterval == 0 and latestBlock.index != 0:
+#         newDifficulty = adjustDiffculty(latestBlock, blocks)
+#         # print("Difficulty adjusted to", newDifficulty)
+#         return newDifficulty
+#     else:
+#         return latestBlock.difficulty
 
-    # adjust difficulty every diffInterval blocks e.g.: every 2 blocks
-    if latestBlock.index % diffInterval == 0 and latestBlock.index != 0:
-        newDifficulty = adjustDiffculty(latestBlock, blocks)
-        # print("Difficulty adjusted to", newDifficulty)
-        return newDifficulty
-    else:
-        return latestBlock.difficulty
 
-
-def adjustDiffculty(latestBlock, currentBlockchain):
-    # the time interval to gen a new block
-    genBlockIntervel = 5
-
-    # get last adjusted block
-    lastAdjustedBlock = currentBlockchain[len(currentBlockchain) - diffInterval]
-    # print('current chain size:', len(currentBlockchain))
-    # expected time to gen a new block
-    timeExpected = genBlockIntervel * diffInterval
-
-    # actual time to gen a new block
-    timeUsed = int(latestBlock.timestamp) - int(lastAdjustedBlock.timestamp)
-    # print('latestBlock:', latestBlock.index, latestBlock.timestamp)
-    # print('lastAdjustedBlock:', lastAdjustedBlock.index, lastAdjustedBlock.timestamp)
-    # print('timeUsed:', timeUsed)
-    # adjust difficulty based on the gen block time interval
-    # to be fixed
-    if timeExpected > timeUsed:
-        return lastAdjustedBlock.difficulty + 1
-    elif timeExpected < timeUsed:
-        return lastAdjustedBlock.difficulty - 1
-    else:
-        return lastAdjustedBlock.difficulty
+# def adjustDiffculty(latestBlock, currentBlockchain):
+#     # the time interval to gen a new block
+#     genBlockIntervel = 5
+#
+#     # get last adjusted block
+#     lastAdjustedBlock = currentBlockchain[len(currentBlockchain) - diffInterval]
+#     # print('current chain size:', len(currentBlockchain))
+#     # expected time to gen a new block
+#     timeExpected = genBlockIntervel * diffInterval
+#
+#     # actual time to gen a new block
+#     timeUsed = int(latestBlock.timestamp) - int(lastAdjustedBlock.timestamp)
+#     # print('latestBlock:', latestBlock.index, latestBlock.timestamp)
+#     # print('lastAdjustedBlock:', lastAdjustedBlock.index, lastAdjustedBlock.timestamp)
+#     # print('timeUsed:', timeUsed)
+#     # adjust difficulty based on the gen block time interval
+#     # to be fixed
+#     if timeExpected > timeUsed:
+#         return lastAdjustedBlock.difficulty + 1
+#     elif timeExpected < timeUsed:
+#         return lastAdjustedBlock.difficulty - 1
+#     else:
+#         return lastAdjustedBlock.difficulty
 
 
 def genRootHash(tx_list):
