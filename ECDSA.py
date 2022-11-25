@@ -44,7 +44,7 @@ def genKey(index):
     with open(f"keypair/public{index}.pem", "wb") as f:
         f.write(vk.to_pem())
 
-
+genKey(4)
 def loadKey(index):
     sk_path = f"keypair/private{index}.pem"
     with open(sk_path) as f:

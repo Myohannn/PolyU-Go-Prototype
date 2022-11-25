@@ -80,7 +80,7 @@ if __name__ == '__main__':
     if not isinstance(miner_index, int):
         print("Invalid Miner Index")
     else:
-        if 5 > miner_index >= 0:
+        if 10 > miner_index >= 0:
             miner0 = Starter(miner_index)
             miner0.run()
         else:

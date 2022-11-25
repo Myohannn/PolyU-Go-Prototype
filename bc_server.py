@@ -49,6 +49,9 @@ class BlockchainServer(blockchain_pb2_grpc.BlockChainServicer):
             self.blockchain.blocks.append(block)
             saveBlocktoDB(self.col, block)
 
+            self.map = initMap(self.blockchain.blocks)
+            print("Update map:", self.map)
+
             print("Blockchain updated: ")
             for i in range(len(self.blockchain.blocks)):
                 print("block " + str(i) + ":")
@@ -96,6 +99,9 @@ class BlockchainServer(blockchain_pb2_grpc.BlockChainServicer):
             saveBlocktoDB(self.col, block)
             print(f"Block {block.index} saved in to storage!")
             # time.sleep(5)
+
+            self.map = initMap(self.blockchain.blocks)
+            print("Update map:", self.map)
 
             print("Blockchain updated: ")
             for i in range(len(self.blockchain.blocks)):
@@ -194,6 +200,33 @@ class BlockchainServer(blockchain_pb2_grpc.BlockChainServicer):
         return blockchain_pb2.QueryDBResponse(message='Blockchain reading complete!')
 
 
+def initMap(blocks):
+    # initiate map
+    length = 100
+    map = ["1", "1", "1", "1", "1"]
+    for i in range(length - 5):
+        map.append("0")
+
+    target_list = []
+    addr_list = []
+
+    for b in range(1, len(blocks)):
+        target_list.append(blocks[b].nonce)
+
+        coinTX = blocks[b].transactionList[0]
+        addr = coinTX.TxOutList[0].address
+        hash = hashlib.sha256((addr.to_pem().decode()).encode("utf-8")).hexdigest()
+        hash_result = hashlib.sha256(hash.encode("utf-8")).hexdigest()
+        addr_list.append(hash_result)
+
+    print("target_list:", target_list)
+    print("addr_list:", addr_list)
+    for i in range(len(target_list)):
+        map[int(target_list[i])] = addr_list[i]
+
+    return map
+
+
 # server setting
 def serve(port):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
@@ -256,7 +289,7 @@ def UTXOs2msg(UTXOs):
 
 def updateMap(map, numOfTarget):
     # delete previous block
-    for i in range(5, 100):
+    for i in range(5, 99):
         if map[i] == '1':
             map[i] = '0'
     import random

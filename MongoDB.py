@@ -4,23 +4,34 @@ myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 
 mydb = myclient["BlockchainDB"]
 
-mycol1 = mydb["miner0"]
-mycol2 = mydb["miner1"]
-mycol3 = mydb["miner2"]
-mycol4 = mydb["miner3"]
+
+
+for i in range(10):
+    mycol = mydb[f"miner{i}"]
+    mycol.drop()
+# mycol1 = mydb["miner0"]
+# mycol2 = mydb["miner1"]
+# mycol3 = mydb["miner2"]
+# mycol4 = mydb["miner3"]
+# mycol4 = mydb["miner3"]
+# mycol4 = mydb["miner3"]
+# mycol4 = mydb["miner3"]
+# mycol4 = mydb["miner3"]
+# mycol4 = mydb["miner3"]
+# mycol4 = mydb["miner3"]
 #
-mycol1.drop()
-mycol2.drop()
-mycol3.drop()
-mycol4.drop()
-
-for x in mycol1.find():
-    print(x)
-
-print()
-
-for x in mycol2.find():
-    print(x)
+# mycol1.drop()
+# mycol2.drop()
+# mycol3.drop()
+# mycol4.drop()
+#
+# for x in mycol1.find():
+#     print(x)
+#
+# print()
+#
+# for x in mycol2.find():
+#     print(x)
 
 #
 # block = getBlockFromDB(mycol,2)

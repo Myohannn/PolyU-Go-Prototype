@@ -27,6 +27,15 @@ class bc_Miner:
         self.localBlockIndex = int(resposne.message)
         self.latestBlockIndex = self.localBlockIndex
 
+        while 1:
+            if self.isMining():
+                break
+
+            print(f"Getting block {self.localBlockIndex}")
+            self.getBlock(self.localBlockIndex)
+            self.getLatestBlockIdx()
+            # query next block
+
     def initMiner(self):
         f = open("portList.txt")
         line = f.readline()
